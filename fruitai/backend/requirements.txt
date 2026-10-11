@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+# torch + torchvision are installed in the Dockerfile (CPU build); for local use: pip install torch torchvision
+pillow
+huggingface_hub
+# only if USE_QWEN=1 (GPU):
+# transformers
+# accelerate
+# qwen-vl-utils

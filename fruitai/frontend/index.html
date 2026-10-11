@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FruitAI – Fruit Classification & Quality Grading</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
+<style>
+:root{--g:#0b7a5a;--gd:#06694d;--gl:#e3f4ec;--bg:#f5f8fa;--card:#fff;--tx:#17302a;--mu:#5d6f6a;--bd:#e3ebe8;--r:14px;
+--good:#d4f1e2;--goodt:#0b6b4c;--mix:#fdebc8;--mixt:#a05a00;--bad:#fbdcdc;--badt:#a12525}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx)}
+header{display:flex;align-items:center;gap:20px;background:#fff;border-bottom:1px solid var(--bd);padding:14px 28px}
+.logo{font-size:30px;font-weight:800;color:var(--g)}.logo span{color:#17302a}
+.sub{border-left:1px solid var(--bd);padding-left:20px}.sub b{display:block;font-size:17px}.sub small{color:var(--mu)}
+.user{margin-left:auto;border:1px solid var(--bd);border-radius:99px;padding:8px 16px;font-size:14px}
+.shell{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 73px)}
+nav{background:#fff;border-right:1px solid var(--bd);padding:18px 12px}
+nav button{display:flex;gap:12px;width:100%;border:0;background:none;padding:12px 14px;border-radius:10px;font:inherit;font-size:15px;color:var(--tx);cursor:pointer;text-align:left}
+nav button.on{background:var(--gl);color:var(--gd);font-weight:600}nav button:hover{background:var(--gl)}
+nav p{margin:40px 14px;color:var(--g);font-weight:600;font-size:14px}
+main{padding:20px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:20px}
+h2{margin:0 0 4px;font-size:19px}.mu{color:var(--mu);font-size:14px;margin:0}
+.drop{margin:16px 0;border:2px dashed #b9d9cc;border-radius:12px;padding:30px 16px;text-align:center;background:#fbfefd}
+.drop.over{background:var(--gl)}.drop .ic{font-size:38px}
+.btn{background:var(--g);color:#fff;border:0;border-radius:8px;padding:11px 22px;font:inherit;font-weight:600;cursor:pointer}.btn:hover{background:var(--gd)}
+.btn.o{background:#fff;color:var(--g);border:1.5px solid var(--g)}
+.ex{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+.ex button{border:0;background:none;font:inherit;font-size:12px;color:var(--mu);cursor:pointer}
+.ex i{display:grid;place-items:center;height:56px;font-style:normal;font-size:30px;background:var(--gl);border-radius:10px;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}th{color:var(--mu);font-weight:500;text-align:left;background:#f6faf8;padding:8px}
+td{padding:8px;border-top:1px solid var(--bd)}td img{width:36px;height:36px;border-radius:8px;object-fit:cover;display:block}
+.chip{display:inline-block;padding:3px 12px;border-radius:99px;font-size:13px;font-weight:600}
+.Good{background:var(--good);color:var(--goodt)}.Mixed{background:var(--mix);color:var(--mixt)}.Bad{background:var(--bad);color:var(--badt)}
+.res-h{background:var(--gl);margin:-20px -20px 20px;padding:18px 20px;border-radius:var(--r) var(--r) 0 0;display:flex;gap:14px;align-items:center}
+.res-h .ok{width:40px;height:40px;border-radius:50%;background:var(--g);color:#fff;display:grid;place-items:center;font-size:20px}
+.top{display:grid;grid-template-columns:1fr 1fr;gap:16px}#pv{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px}
+.tile{background:#f6faf8;border-radius:12px;padding:16px;margin-bottom:12px}.tile small{color:var(--mu)}.tile h3{margin:4px 0 8px;font-size:26px}
+.ai{background:#eef6fb;border-radius:12px;padding:16px;margin:16px 0}.ai h4{margin:0 0 8px}.ai p{margin:6px 0;font-size:14px;line-height:1.55}
+.attrs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.attrs div{background:#f6faf8;border-radius:10px;padding:12px;font-size:13px}.attrs b{display:block;font-size:12px;color:var(--mu);margin-bottom:4px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.empty{text-align:center;color:var(--mu);padding:70px 20px}.empty .ic{font-size:48px}
+.spin{width:34px;height:34px;border:4px solid var(--gl);border-top-color:var(--g);border-radius:50%;margin:0 auto 14px;animation:s .8s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+.err{background:var(--bad);color:var(--badt);border-radius:10px;padding:12px;margin-top:12px;font-size:14px}
+.dashboard{display:grid;gap:18px}
+.dash-head h2{font-size:24px;margin:0 0 5px}.dash-head p,.dash-caption,.dash-note{color:var(--mu);font-size:13px;margin:0}
+.dash-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.dash-stat,.dash-card,.dash-empty{background:#fff;border:1px solid var(--bd);border-radius:var(--r);padding:18px}
+.dash-stat{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:start}
+.dash-icon{display:grid;place-items:center;width:42px;height:42px;background:var(--gl);border-radius:11px;font-size:21px}
+.dash-label{display:block;color:var(--mu);font-size:13px}.dash-value{display:block;font-size:24px;line-height:1.2;margin:5px 0;font-weight:700;overflow-wrap:anywhere}
+.dash-charts{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px}
+.dash-card h3{font-size:17px;margin:0 0 18px}
+.dash-donut-wrap{display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap}
+.dash-donut{position:relative;display:grid;place-items:center;width:164px;height:164px;border-radius:50%;flex:none}
+.dash-donut::before{content:"";position:absolute;inset:25px;background:#fff;border-radius:50%}
+.dash-donut-center{position:relative;text-align:center}.dash-donut-center strong{display:block;font-size:27px}.dash-donut-center small{color:var(--mu)}
+.dash-legend{display:grid;gap:12px;min-width:135px}
+.dash-legend-item{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:8px;font-size:13px}
+.dash-key{width:11px;height:11px;border-radius:3px}.dash-legend-item small{display:block;color:var(--mu);margin-top:2px}
+.dash-fruit-list{display:grid;gap:13px}.dash-fruit-head{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:6px}
+.dash-stack-track{height:13px;border-radius:99px;background:#edf2ef;overflow:hidden}
+.dash-stack{display:flex;height:100%;min-width:0;border-radius:inherit;overflow:hidden}
+.dash-segment{height:100%;min-width:0}.dash-segment.good{background:#1aa376}.dash-segment.mixed{background:#f0a21b}.dash-segment.bad{background:#e0504f}
+.dash-trend{width:100%;height:auto;display:block;overflow:visible}.dash-trend text{fill:var(--mu);font:12px system-ui,sans-serif}
+.dash-trend .gridline{stroke:#e7eeeb;stroke-width:1}.dash-trend .trendline{fill:none;stroke:var(--g);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.dash-trend .trendpoint{fill:#fff;stroke:var(--g);stroke-width:2}
+.dash-empty{text-align:center;padding:48px 20px}.dash-empty-icon{font-size:42px;margin-bottom:8px}.dash-empty h2{margin:0 0 8px}.dash-empty p{color:var(--mu);margin:0 0 20px}
+.hide{display:none!important}
+button:focus-visible,input:focus-visible{outline:3px solid #7fcdb1;outline-offset:2px}
+@media(max-width:960px){.shell{grid-template-columns:1fr}nav{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--bd)}nav p{display:none}nav button{white-space:nowrap;width:auto}main{grid-template-columns:1fr}.sub{display:none}}
+@media(max-width:960px){.dash-charts{grid-template-columns:1fr}}
+@media(max-width:700px){.dash-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.top,.acts{grid-template-columns:1fr}.attrs{grid-template-columns:1fr 1fr}.ex{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:420px){.dash-stats{grid-template-columns:1fr}.dash-donut-wrap{gap:18px}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}.dash-stat,.dash-card{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🍎 Fruit<span>AI</span></div>
+  <div class="sub"><b>Fruit Classification & Quality Grading</b><small>Powered by Deep Learning + Vision-Language Model</small></div>
+</header>
+<div class="shell">
+<nav id="nav">
+  <button data-v="home" class="on">🏠 Home</button>
+  <button data-v="home" data-go="up">📷 Upload & Analyze</button>
+  <button data-v="history">🕘 History</button>
+  <button data-v="dash">📊 Dashboard</button>
+  <button data-v="about">ℹ️ About</button>
+  <p>🌿 AI for Better<br>Food Quality</p>
+</nav>
+
+<main id="v-home">
+  <div>
+    <section class="card" id="up">
+      <h2>Upload Fruit Image</h2><p class="mu">Upload an image or use your camera to analyze the fruit.</p>
+      <div class="drop" id="drop">
+        <div class="ic">🖼️</div><p>Drag & drop an image here<br><small class="mu">or</small></p>
+        <button class="btn" id="pick">📷 Choose Image</button>
+        <input type="file" id="file" accept="image/jpeg,image/png" hidden>
+        <p class="mu" style="font-size:12px;margin-top:14px">Supported formats: JPG, PNG, JPEG | Max size: 5MB</p>
+      </div>
+      <div id="err" class="err hide" role="alert"></div>
+      <p class="mu"><b>Try with example images</b></p>
+      <div class="ex" id="ex"></div>
+    </section>
+    <section class="card" style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between"><h2>Recent Analysis</h2><a href="#" id="viewall" style="color:var(--g);font-size:13px;font-weight:600;text-decoration:none">View All →</a></div>
+      <table><thead><tr><th>Image</th><th>Fruit Type</th><th>Quality</th><th>Confidence</th><th>Date</th></tr></thead><tbody id="recent"></tbody></table>
+    </section>
+  </div>
+  <section class="card" id="result" aria-live="polite">
+    <div class="empty"><div class="ic">🍏</div><p>Upload a fruit image to see its type, quality grade and AI explanation here.</p></div>
+  </section>
+</main>
+
+<main id="v-history" class="hide" style="grid-template-columns:1fr"><section class="card"><h2>History</h2>
+  <table><thead><tr><th>Image</th><th>Fruit Type</th><th>Quality</th><th>Confidence</th><th>Date</th></tr></thead><tbody id="all"></tbody></table>
+  <p><button class="btn o" id="clear">Clear history</button></p></section></main>
+<main id="v-dash" class="hide" style="grid-template-columns:1fr"><div id="dash" class="dashboard"></div></main>
+<main id="v-about" class="hide" style="grid-template-columns:1fr"><section class="card"><h2>About FruitAI</h2>
+  <h3>Intelligent Fruit Classification &amp; Quality Grading</h3>
+  <p>FruitAI is an AI-powered application designed to identify fruit types and assess their visible quality using deep learning and computer vision. It combines image classification with Multi-Task Learning to predict fruit identity and quality from a single image.</p>
+
+  <h4>Our Objective</h4>
+  <p>To simplify fruit inspection by providing fast, consistent, and interpretable visual predictions that can support fruit sorting and quality assessment.</p>
+
+  <h4>Supported Fruits</h4>
+  <ul>
+    <li>Apple</li>
+    <li>Banana</li>
+    <li>Guava</li>
+    <li>Lime</li>
+    <li>Orange</li>
+    <li>Pomegranate</li>
+  </ul>
+
+  <h4>Quality Categories</h4>
+  <ul>
+    <li><strong>Good:</strong> The fruit appears to have a good visible surface condition.</li>
+    <li><strong>Bad:</strong> The fruit shows visual characteristics associated with poor quality.</li>
+    <li><strong>Mixed:</strong> The image contains mixed or uncertain visible quality characteristics.</li>
+  </ul>
+
+  <h4>AI Technology</h4>
+  <p>FruitAI explores a ResNet50 backbone enhanced with Convolutional Block Attention Module (CBAM) and Multi-Task Learning (MTL). The architecture predicts fruit type and quality through two output heads.</p>
+  <ul>
+    <li><strong>Deep Learning:</strong> Extracts visual features from fruit images.</li>
+    <li><strong>CBAM Attention:</strong> Helps the model emphasize relevant channel and spatial features.</li>
+    <li><strong>Multi-Task Learning:</strong> Predicts fruit identity and quality within a shared architecture.</li>
+    <li><strong>Grad-CAM:</strong> Helps visualize image regions that influence model predictions.</li>
+    <li><strong>Vision-Language Model:</strong> Generates a human-readable explanation based on the image and model predictions.</li>
+  </ul>
+
+  <h4>How It Works</h4>
+  <ol>
+    <li>Upload a fruit image or select an example image.</li>
+    <li>The image is resized and preprocessed.</li>
+    <li>The trained deep learning model predicts the fruit type and quality category.</li>
+    <li>The application displays predictions and confidence scores.</li>
+    <li>Available AI explanations and visualizations help users interpret the result.</li>
+  </ol>
+
+  <h4>Our Vision</h4>
+  <p>To explore accessible AI-assisted fruit inspection and contribute to more consistent, transparent, and efficient quality assessment.</p>
+
+  <p><strong>Important:</strong> FruitAI assesses visible appearance only. It cannot confirm internal freshness, detect every hidden defect, or determine whether a fruit is safe to eat.</p></section></main>
+</div>
+
+<script>
+// Local backend URL for the FruitAI API
+const API_URL = "http://127.0.0.1:8000";
+
+const $ = s => document.querySelector(s), esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const EXAMPLES = [["Apple","🍎"],["Banana","🍌"],["Guava","🍈"],["Lime","🍋"],["Orange","🍊"],["Pomegranate","🍅"]];
+const KEY = "fruitai_history"; let last = null;
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+const save = h => { try { localStorage.setItem(KEY, JSON.stringify(h.slice(0, 50))); } catch {} };
+
+$("#ex").innerHTML = EXAMPLES.map(([n,e]) => `<button data-n="${n.toLowerCase()}"><i>${e}</i>${n}</button>`).join("");
+$("#ex").onclick = async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  try { const r = await fetch(`examples/${b.dataset.n}.jpg`); if (!r.ok) throw 0; analyze(new File([await r.blob()], b.dataset.n + ".jpg", {type:"image/jpeg"})); }
+  catch { showErr(`Add a photo at frontend/examples/${b.dataset.n}.jpg to enable this example.`); }
+};
+const showErr = m => { const x = $("#err"); x.textContent = m; x.classList.toggle("hide", !m); };
+
+$("#pick").onclick = () => $("#file").click();
+$("#file").onchange = e => e.target.files[0] && analyze(e.target.files[0]);
+const d = $("#drop");
+["dragover","dragenter"].forEach(t => d.addEventListener(t, e => { e.preventDefault(); d.classList.add("over"); }));
+["dragleave","drop"].forEach(t => d.addEventListener(t, e => { e.preventDefault(); d.classList.remove("over"); }));
+d.addEventListener("drop", e => e.dataTransfer.files[0] && analyze(e.dataTransfer.files[0]));
+
+function thumb(file) {
+  return new Promise(res => { const i = new Image(); i.onload = () => { const c = document.createElement("canvas"); c.width = c.height = 72;
+    const s = Math.min(i.width, i.height); c.getContext("2d").drawImage(i, (i.width-s)/2, (i.height-s)/2, s, s, 0, 0, 72, 72); res(c.toDataURL("image/jpeg", .7)); };
+    i.onerror = () => res(""); i.src = URL.createObjectURL(file); });
+}
+
+async function analyze(file) {
+  showErr("");
+  if (!/^image\/(jpeg|png)$/.test(file.type)) return showErr("Unsupported file. Choose a JPG, JPEG or PNG image.");
+  if (file.size > 5 * 1024 * 1024) return showErr("Image is larger than 5MB. Choose a smaller image.");
+  const url = URL.createObjectURL(file);
+  $("#result").innerHTML = `<div class="empty"><div class="spin"></div><p>Analyzing your fruit…</p></div>`;
+  go("home");
+  try {
+    const fd = new FormData(); fd.append("file", file);
+    const r = await fetch(API_URL + "/predict", { method: "POST", body: fd });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `Server error (${r.status})`);
+    last = { ...(await r.json()), url, date: new Date() };
+    render(last);
+    const h = load(); h.unshift({ thumb: await thumb(file), fruit: last.fruit, quality: last.quality, conf: last.fruit_confidence, date: last.date.toISOString() }); save(h); table();
+  } catch (e) {
+    $("#result").innerHTML = `<div class="empty"><div class="ic">⚠️</div><p>${esc(e.message === "Failed to fetch" ? "Cannot reach the analysis server. Check that the backend is running and API_URL is set." : e.message)}</p></div>`;
+  }
+}
+
+const pct = x => (x * 100).toFixed(1) + "%";
+function render(r) {
+  const a = r.attributes, ex = r.explanation;
+  $("#result").innerHTML = `
+  <div class="res-h"><div class="ok">✓</div><div><h2>Analysis Result</h2><p class="mu">Here is the detailed result of your uploaded image.</p></div></div>
+  <div class="top"><img id="pv" src="${r.url}" alt="Uploaded fruit">
+    <div><div class="tile"><small>Fruit Classification</small><h3>${esc(r.fruit)}</h3><span class="chip Good">${pct(r.fruit_confidence)} Confidence</span></div>
+    <div class="tile"><small>Quality Grading</small><h3>${esc(r.quality)}</h3><span class="chip ${esc(r.quality)}">${pct(r.quality_confidence)} Confidence</span></div></div></div>
+  <div class="ai"><h4>🤖 AI Explanation</h4><p>${esc(ex.summary || "")}</p><p>${esc(ex.visual_evidence || "")}</p><p class="mu">${esc(ex.limitations || "")}</p></div>
+  <div class="attrs"><div><b>Color</b>${esc(a.color)}</div><div><b>Surface</b>${esc(a.surface)}</div><div><b>Visible Damage</b>${esc(a.damage)}</div><div><b>Texture</b>${esc(a.texture)}</div></div>
+  <div class="acts"><button class="btn" id="again">⟳ Analyze Another Image</button><button class="btn o" id="dl">⬇ Download Report</button></div>`;
+  $("#again").onclick = () => $("#file").click();
+  $("#dl").onclick = () => {
+    const t = `FruitAI Report\n${r.date.toLocaleString()}\n\nFruit: ${r.fruit} (${pct(r.fruit_confidence)})\nQuality: ${r.quality} (${pct(r.quality_confidence)})\nColor: ${a.color} | Surface: ${a.surface} | Damage: ${a.damage} | Texture: ${a.texture}\n\nSummary: ${ex.summary}\nEvidence: ${ex.visual_evidence}\nLimitations: ${ex.limitations}\n`;
+    const l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([t], {type:"text/plain"})); l.download = `fruitai-report-${r.fruit.toLowerCase()}.txt`; l.click();
+  };
+}
+
+const row = h => `<tr><td>${h.thumb ? `<img src="${h.thumb}" alt="">` : ""}</td><td>${esc(h.fruit)}</td><td><span class="chip ${esc(h.quality)}">${esc(h.quality)}</span></td><td>${pct(h.conf)}</td><td>${new Date(h.date).toLocaleString([], {dateStyle:"medium", timeStyle:"short"})}</td></tr>`;
+function table() {
+  const h = load(), e = `<tr><td colspan="5" class="mu">No analyses yet.</td></tr>`;
+  $("#recent").innerHTML = h.slice(0, 4).map(row).join("") || e; $("#all").innerHTML = h.map(row).join("") || e;
+  dash(h);
+}
+
+function dash(history) {
+  const items = Array.isArray(history) ? history : [];
+  const fruits = ["Apple", "Banana", "Guava", "Lime", "Orange", "Pomegranate"];
+  const qualities = [
+    { name: "Good", color: "#1aa376", className: "good" },
+    { name: "Mixed", color: "#f0a21b", className: "mixed" },
+    { name: "Bad", color: "#e0504f", className: "bad" }
+  ];
+  const fruitCounts = Object.fromEntries(fruits.map(name => [name, 0]));
+  const fruitQualityCounts = Object.fromEntries(fruits.map(name => [name, {Good: 0, Mixed: 0, Bad: 0}]));
+  const qualityCounts = Object.fromEntries(qualities.map(({name}) => [name, 0]));
+  let confidenceTotal = 0, confidenceCount = 0;
+  items.forEach(item => {
+    if (Object.prototype.hasOwnProperty.call(fruitCounts, item.fruit)) {
+      fruitCounts[item.fruit]++;
+      if (Object.prototype.hasOwnProperty.call(fruitQualityCounts[item.fruit], item.quality)) {
+        fruitQualityCounts[item.fruit][item.quality]++;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(qualityCounts, item.quality)) qualityCounts[item.quality]++;
+    const confidence = Number(item.conf);
+    if (Number.isFinite(confidence)) {
+      confidenceTotal += Math.max(0, Math.min(1, confidence));
+      confidenceCount++;
+    }
+  });
+
+  const root = $("#dash");
+  if (!items.length) {
+    root.innerHTML = `<section class="dash-empty">
+      <div class="dash-empty-icon" aria-hidden="true">📊</div>
+      <h2>No analyses yet</h2>
+      <p>Analyze a fruit to see your stats.</p>
+      <button class="btn" id="dash-analyze">Analyze a fruit</button>
+    </section>`;
+    $("#dash-analyze").onclick = () => { go("home"); $("#file").click(); };
+    return;
+  }
+
+  const total = items.length;
+  const rankedFruits = fruits.map((name, index) => ({name, count: fruitCounts[name], index}))
+    .sort((a, b) => b.count - a.count || a.index - b.index);
+  const topFruit = rankedFruits[0];
+  const goodPercent = qualityCounts.Good / total * 100;
+  const averageConfidence = confidenceCount ? confidenceTotal / confidenceCount * 100 : 0;
+  const stat = (icon, label, value, caption) => `<article class="dash-stat">
+    <span class="dash-icon" aria-hidden="true">${icon}</span>
+    <div><span class="dash-label">${label}</span><strong class="dash-value">${value}</strong><span class="dash-caption">${caption}</span></div>
+  </article>`;
+
+  let angle = 0;
+  const gradientStops = qualities.map(({name, color}) => {
+    const start = angle;
+    angle += qualityCounts[name] / total * 360;
+    return `${color} ${start.toFixed(2)}deg ${angle.toFixed(2)}deg`;
+  }).join(", ");
+  const legend = qualities.map(({name, color}) => {
+    const count = qualityCounts[name], percent = count / total * 100;
+    return `<div class="dash-legend-item"><span class="dash-key" style="background:${color}" aria-hidden="true"></span>
+      <span>${name}<small>${percent.toFixed(1)}%</small></span><strong>${count}</strong></div>`;
+  }).join("");
+  const maxFruitCount = topFruit.count;
+  const fruitRows = rankedFruits.map(({name, count}) => {
+    const width = maxFruitCount ? count / maxFruitCount * 100 : 0;
+    const segments = qualities.map(({name: quality, className}) => {
+      const value = fruitQualityCounts[name][quality];
+      const segmentWidth = count ? value / count * 100 : 0;
+      return `<span class="dash-segment ${className}" style="width:${segmentWidth.toFixed(2)}%" title="${quality}: ${value}" aria-hidden="true"></span>`;
+    }).join("");
+    return `<div><div class="dash-fruit-head"><span>${esc(name)}</span><strong>${count}</strong></div>
+      <div class="dash-stack-track" role="img" aria-label="${esc(name)}: ${qualities.map(({name: quality}) => `${quality} ${fruitQualityCounts[name][quality]}`).join(", ")}">
+        <div class="dash-stack" style="width:${width.toFixed(2)}%">${segments}</div></div></div>`;
+  }).join("");
+
+  const recentConfidences = items.slice(0, 20).map(item => {
+    const value = Number(item.conf);
+    return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+  }).reverse();
+  const minConfidence = Math.min(...recentConfidences);
+  const scaleMin = Math.min(minConfidence, 0.9);
+  const plot = { left: 48, right: 624, top: 18, bottom: 138 };
+  const pointFor = (value, index) => {
+    const x = recentConfidences.length === 1 ? (plot.left + plot.right) / 2 :
+      plot.left + index * (plot.right - plot.left) / (recentConfidences.length - 1);
+    const y = plot.bottom - (value - scaleMin) / (1 - scaleMin) * (plot.bottom - plot.top);
+    return {x, y};
+  };
+  const points = recentConfidences.map((value, index) => pointFor(value, index));
+  const polyline = points.map(point => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+  const circles = points.map(point => `<circle class="trendpoint" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3"></circle>`).join("");
+  const trend = `<svg class="dash-trend" viewBox="0 0 640 170" role="img" aria-label="Fruit classification confidence trend for the latest ${recentConfidences.length} analyses, ranging from ${(scaleMin * 100).toFixed(0)} to 100 percent">
+    <line class="gridline" x1="${plot.left}" y1="${plot.top}" x2="${plot.right}" y2="${plot.top}"></line>
+    <line class="gridline" x1="${plot.left}" y1="${plot.bottom}" x2="${plot.right}" y2="${plot.bottom}"></line>
+    <text x="0" y="${plot.top + 4}">100%</text><text x="0" y="${plot.bottom + 4}">${(scaleMin * 100).toFixed(0)}%</text>
+    <polyline class="trendline" points="${polyline}"></polyline>${circles}
+    <text x="${plot.left}" y="162">Older</text><text x="${plot.right}" y="162" text-anchor="end">Newer</text>
+  </svg>`;
+
+  root.innerHTML = `<div class="dash-head"><h2>Dashboard</h2><p>Summary of your ${total} saved analyses.</p></div>
+    <section class="dash-stats" aria-label="Analysis summary">
+      ${stat("📦", "Total analyses", total, "saved in this browser")}
+      ${stat("🍎", "Most analyzed fruit", esc(topFruit.name), `${topFruit.count} of ${total}`)}
+      ${stat("✅", "Good quality", `${goodPercent.toFixed(1)}%`, `${qualityCounts.Good} of ${total} fruits`)}
+      ${stat("🎯", "Average confidence", `${averageConfidence.toFixed(1)}%`, "fruit classification")}
+    </section>
+    <section class="dash-charts">
+      <article class="dash-card"><h3>Quality breakdown</h3>
+        <div class="dash-donut-wrap">
+          <div class="dash-donut" role="img" aria-label="Quality breakdown: ${qualities.map(({name}) => `${name} ${qualityCounts[name]} (${(qualityCounts[name] / total * 100).toFixed(1)} percent)`).join(", ")}"
+            style="background:conic-gradient(${gradientStops})">
+            <span class="dash-donut-center"><strong>${total}</strong><small>analyses</small></span>
+          </div><div class="dash-legend">${legend}</div>
+        </div>
+      </article>
+      <article class="dash-card"><h3>Quality by fruit</h3><div class="dash-fruit-list">${fruitRows}</div>
+        <p class="dash-note" style="margin-top:14px">Segments show Good, Mixed and Bad counts.</p>
+      </article>
+    </section>
+    <section class="dash-card"><h3>Confidence trend (last ${recentConfidences.length})</h3>
+      ${trend}<p class="dash-note">The vertical scale runs from the lowest recent confidence (or 90%, whichever is lower) to 100%.</p>
+    </section>`;
+}
+
+function go(v, scroll) {
+  ["home","history","dash","about"].forEach(n => $("#v-" + n).classList.toggle("hide", n !== v));
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v && (!b.dataset.go === !scroll)));
+  if (scroll) $("#up").scrollIntoView({behavior:"smooth"});
+}
+$("#nav").onclick = e => { const b = e.target.closest("button"); if (b) go(b.dataset.v, b.dataset.go); };
+$("#viewall").onclick = e => { e.preventDefault(); go("history"); };
+$("#clear").onclick = () => { save([]); table(); };
+table();
+</script>
+</body>
+</html>
